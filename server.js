@@ -1,6 +1,7 @@
 const http=require('http'),fs=require('fs'),path=require('path'),{WebSocketServer}=require('ws');
 const html=fs.readFileSync(path.join(__dirname,'public/index.html'));
-const srv=http.createServer((q,r)=>{r.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});r.end(html)});
+const mp3=fs.readFileSync(path.join(__dirname,'public/musica.mp3'));
+const srv=http.createServer((q,r)=>{if(q.url=='/musica.mp3'){r.writeHead(200,{'Content-Type':'audio/mpeg','Content-Length':mp3.length});return r.end(mp3)}r.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});r.end(html)});
 const wss=new WebSocketServer({server:srv});
 const players=new Map();let best={},id=0,oid=0,t=0;
 const send=m=>{const s=JSON.stringify(m);wss.clients.forEach(c=>c.readyState==1&&c.send(s))};
