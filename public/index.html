@@ -1,0 +1,28 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Esquivá el Bondi Online</title>
+<style>body{margin:0;overflow:hidden;background:#111;color:#fff;font:18px sans-serif;touch-action:none}canvas{display:block}
+#s{position:fixed;top:8px;left:8px}#lb{position:fixed;top:8px;right:8px;background:#0008;padding:8px;white-space:pre}</style></head>
+<body><div id="s"></div><div id="lb"></div><canvas id="c"></canvas><script>
+const nombre=(prompt('Tu nombre:')||'anon').slice(0,15);
+const c=document.getElementById('c'),x=c.getContext('2d'),malos=['🚌','💩','🧉','🥩','📦','🦆'];
+let W,H,px=.5,cosas=[],otros=[],yo=0,pts=0,vivo=true,ws;
+function r(){W=c.width=innerWidth;H=c.height=innerHeight}r();onresize=r;
+onpointermove=e=>px=e.clientX/W;onpointerdown=e=>{px=e.clientX/W;if(!vivo){pts=0;vivo=true}};
+function con(){ws=new WebSocket((location.protocol=='https:'?'wss://':'ws://')+location.host);
+ ws.onopen=()=>ws.send(JSON.stringify({name:nombre}));
+ ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.yo){yo=m.yo;return}
+  const now=performance.now();m.n.forEach(o=>{o.t=now;cosas.push(o)});otros=m.p;
+  document.getElementById('lb').textContent='🏆 RÉCORDS\n'+m.top.map((t,i)=>(i+1)+'. '+t[0]+' '+t[1]).join('\n')};
+ ws.onclose=()=>setTimeout(con,1000)}con();
+setInterval(()=>ws.readyState==1&&ws.send(JSON.stringify({x:px,pts,vivo})),50);
+function loop(){const now=performance.now(),py=H-60;
+ x.fillStyle='#111';x.fillRect(0,0,W,H);x.textAlign='center';x.font='48px serif';
+ if(vivo)pts++;
+ cosas=cosas.filter(k=>{const y=(now-k.t)/1000*k.v*H-50,kx=k.x*W;x.fillText(malos[k.e],kx,y);
+  if(vivo&&Math.hypot(kx-px*W,y-15-py)<40)vivo=false;return y<H+60});
+ x.font='14px sans-serif';
+ for(const o of otros)if(o.id!=yo){x.globalAlpha=.5;x.font='40px serif';x.fillText(o.vivo?'🏃':'💀',o.x*W,py+15);x.font='14px sans-serif';x.fillText(o.name+' '+o.pts,o.x*W,py+35);x.globalAlpha=1}
+ x.font='48px serif';x.fillText(vivo?'🏃':'💀',px*W,py+15);x.font='14px sans-serif';x.fillStyle='#ff0';x.fillText(nombre,px*W,py+35);
+ if(!vivo){x.font='34px sans-serif';x.fillStyle='#fff';x.fillText('¡TE PISÓ! Tocá para revivir',W/2,H/2)}
+ document.getElementById('s').textContent='Puntos: '+pts+' | Jugadores: '+otros.length;
+ requestAnimationFrame(loop)}loop();
+</script></body></html>
